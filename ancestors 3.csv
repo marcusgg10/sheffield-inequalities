@@ -1,0 +1,82 @@
+﻿wkt_geom,,Name,Birth_year,Death_yr,Born_location,Died_Location,Partner,Partner_yr_married,Direct_Descendant,Birth_Lat,Birth_Long,Death_Lat,Death_Long,field_13,Checked,Gen
+Point (13.24327210000000044 54.3364609999999999),,Hermann,1613,,Wismar,,Maria Harder,,Unknown,53.8909832,11.4647932,,,,Y,1
+Point (16.95791685000000015 52.4035197299999993),,Ascan Friedrich,1661,1728,Gubkow,Gubkow,Barbara v. Venninghusen,b1672 Gluckstadt d1745 Gubkow,Joachim,54.0298298,12.3471114,54.0298298,12.3471114,,Y,2
+Point (14.60118839999999985 52.55643460000000289),,Johann Hermann,1683,1742,Striesdorf,Garz (Rugen),Anna Lucie v. Cambs,b1693 Drtow d1726,Joachim,53.9313208,12.2578451,54.3195842,13.3516021,,Y,2
+Point (14.60118839999999985 52.55643460000000289),,Maria Elisabeth,1701,1768,Gubkow,Schwandt,Adam Karl v. Voss,m1722 b1678 Passenthin d1765 Schwandt,Ascan Friedrich,54.0298298,12.3471114,53.5933755,13.0279388,,Y,3
+Point (16.47604070999999948 50.85034313999999966),,Joachim Christian,1705,1763,Gubkow,Petschow,"Elisabeth Juliane v. Blucher, Gabriele Margarethe v. Knustorff, Katarian Sofie Baronin v. Le Fort",i. m1739 ii. m1741 iii. M1748,Ascan Friedrich,54.0298298,12.3471114,54.0372227,12.2921716,,Y,3
+Point (16.47604070999999948 50.85034313999999966),,Katarina Agneta,1705,1766,Gubkow,,,,Ascan Friedrich,54.0298298,12.3471114,,,,Y,3
+Point (16.47604070999999948 50.85034313999999966),,Johann Peter,1709,1763,Gubkow,Drosedow,,,Ascan Friedrich,54.0298298,12.3471114,53.2396975,12.9147904,,Y,3
+Point (16.47604070999999948 50.85034313999999966),,Dorothea Sophia,1710,,Gubkow,,,,Ascan Friedrich,54.0298298,12.3471114,,,,Y,3
+Point (12.91479039999999934 53.23969749999999834),,Joachim Friedrich,1717,1779,Gotemitz,Konigsberg,"Charlotte Johanna v.Donniges, v. Vangert",,Johann Hermann,54.336461,13.2432721,54.715424,20.509207,,Y,5
+Point (12.29217159999999964 54.03722270000000094),,Maris Agnes,1720,,Gotemitz,,,,Johann Hermann,54.336461,13.2432721,,,,Y,5
+Point (13.24327210000000044 54.3364609999999999),,Johann Hermann,1724,1758,Gotemitz,,,,Johann Hermann,54.336461,13.2432721,,,,Y,5
+Point (14.5494520000000005 52.3412272999999999),,Bogistaff Ernst,1724,1758,Gotemitz,,,,Johann Hermann,54.336461,13.2432721,,,,Y,5
+Point (14.60118839999999985 52.55643460000000289),,Friedrich Alexander,1729,1809,Gotemitz,Woldegk,v. der Kettenburg,,Johann Hermann,54.336461,13.2432721,53.4592923,13.5833378,,Y,5
+Point (14.60118839999999985 52.55643460000000289),,Friedrich Hartwig,1739,1811,Petschow,Ganzkow,,,Joachim Christian,54.0372227,12.2921716,53.6629206,13.3331885,,Y,6
+Point (14.60118839999999985 52.55643460000000289),,Anna Elisabeth,1742,1809,Petschow,Butzow,,,Joachim Christian,54.0372227,12.2921716,53.8374497,13.6451173,,Y,6
+Point (13.39513089999999984 52.51738850000000269),,Agents Amalia,1745,1747,Petschow,Gubkow,,,Joachim Christian,54.0372227,12.2921716,54.0298298,12.3471114,,Y,6
+Point (7.59439509999999984 50.35332780000000241),,Adolf Friedrich Albert,1755,1802,Drosedow,Kustrin,Karoline Ramm,m1784 b1770 Wriezen d1813 Berlin,Ernst Peter,53.2396975,12.9147904,52.5564346,14.6011884,,Y,6
+Point (8.27362530000000085 49.9995205000000027),,Dorothea Christiane Sofie,1756,1757,Drosedow,Drosedow,,,Ernst Peter,53.2396975,12.9147904,53.2396975,12.9147904,,Y,6
+Point (14.55418120000000037 53.42869369999999662),,Karl Friedrich Ernst,1757,1831,Drosedow,Bartenstein,,,Ernst Peter,53.2396975,12.9147904,49.3561573,9.8820152,,Y,6
+Point (13.39513089999999984 52.51738850000000269),,Ausgusta Lucie,1760,1792,Altdamm,Liekheim,Bernhard v. Unruh,b1733 d1810,Joachim Friedrich,53.40004923110205 14.675553236303529,14.67555324,,,,U,6
+Point (12.25784510000000083 53.93132080000000173),,Johanna Charlotte,1761,1807,Altdamm,,Benjamin v. Bewersdorf,,Joachim Friedrich,53.40004923110205 14.675553236303529,14.67555324,,,,Y,6
+Point (12.29217159999999964 54.03722270000000094),,Friederike Willhelmine,1764,1804,Altdamm,,Friedrich Gebhard v. Altenbokum,b1756 d1822,Joachim Friedrich,53.40004923110205 14.675553236303529,14.67555324,,,,Y,6
+Point (7.6138425999999999 50.35929380000000322),,Kareline Sofie,1765,1791,Altdamm,,Friedrich v. Trotta,b1754 d1830,Joachim Friedrich,53.40004923110205 14.675553236303529,14.67555324,,,,Y,6
+Point (12.34711139999999929 54.02982980000000168),,Hypolita Sophie Friederika,1769,,Breechen,,,,Friedrich Alexander,53.9314436,13.3543147,,,,y,6
+Point (12.34711139999999929 54.02982980000000168),,Gustav Friedrich Alexander,1773,,Breechen,,,,Friedrich Alexander,53.9314436,13.3543147,,,,y,6
+Point (12.91479039999999934 53.23969749999999834),,Friederike Johanna Luise,1787,1867,Frankfurt/Oder,Berlin,Georg Brock,b1777,Adolf Friedrich Albert,52.3412273,14.549452,52.5173885,13.3951309,,y,7
+Point (11.46479320000000079 53.89098320000000086),,Adolf Joachim Friedrich Albert,1789,1867,Kustrin,Schweidnitz,Wilhelmine Goldbeck,m1817 b1787,Adolf Friedrich Albert,52.5564346,14.6011884,51.0738009,14.6556933,,y,7
+Point (12.34711139999999929 54.02982980000000168),,Leopold,1792,1809,Kustrin,Berlin,,,Adolf Friedrich Albert,52.5564346,14.6011884,52.5173885,13.3951309,,y,7
+Point (12.29217159999999964 54.03722270000000094),,Ernst Friedrich Ludwig Theodor,1795,1848,Kustrin,Schweidnitz,Charlotte John,m1821 b1791,Adolf Friedrich Albert,52.5564346,14.6011884,51.0738009,14.6556933,,y,7
+Point (12.34711139999999929 54.02982980000000168),,Dorothea Amaliaa Charlotte,1798,1872,Kustrin,Berlin,,,Adolf Friedrich Albert,52.5564346,14.6011884,52.5173885,13.3951309,,y,7
+Point (16.47604070999999948 50.85034313999999966),,Lina,1800,1805,Kustrin,Berlin,,,Adolf Friedrich Albert,52.5564346,14.6011884,52.5173885,13.3951309,,y,7
+Point (6.77631370000000022 51.22540180000000021),,Ernst Friedrich Joachim,1822,1907,Schweidnitz,Schweidnitz,Elisabeth Sommerbrodt,m1861 b1841 Schweidnitz d1908 Breslau,Ernst Friedrich Ludwig Theodor,50.85034314,16.47604071,51.0738009,14.6556933,,y,8
+Point (14.55418120000000037 53.42869369999999662),,Marie,1822,1855,Berlin,Berlin,,,Adolf Joachim Friedrich Albert,52.5173885,13.3951309,52.5173885,13.3951309,,y,8
+Point (12.91479039999999934 53.23969749999999834),,Ida Friedrike,1825,1889,Schweidnitz,Schweidnitz,Felix Schmidt,m1854 b1825 Schweidnitz d1878 Genthin,Ernst Friedrich Ludwig Theodor,50.85034314,16.47604071,51.0738009,14.6556933,,y,8
+Point (9.73855320000000013 52.37447790000000225),,Agnes Friederike,1826,1892,Schweidnitz,Schweidnitz,,,Ernst Friedrich Ludwig Theodor,50.85034314,16.47604071,51.0738009,14.6556933,,y,8
+Point (7.76687539200000021 48.5744314000000017),,Adolf Willhelm,1826,1899,Berlin,Wiesbaden,Beta Prillwitz,m1867 b1834 Nauen d1907 Berlin,Adolf Joachim Friedrich Albert,52.5173885,13.3951309,50.0820384,8.2416556,,y,8
+Point (16.95791685000000015 52.4035197299999993),,Klara,1832,1891,Schweidnitz,Schweidnitz,Hermann Woywod,m1856,Ernst Friedrich Ludwig Theodor,50.85034314,16.47604071,51.0738009,14.6556933,,y,8
+Point (13.39513089999999984 52.51738850000000269),,Emma,1834,1905,Schweidnitz,Petschow,Henrich Lachel,m1848 d1851 Schweidnitz,Ernst Friedrich Ludwig Theodor,50.85034314,16.47604071,54.0372227,12.2921716,,y,8
+Point (13.39513089999999984 52.51738850000000269),,Walter Willhelm Heinrich Adolf Joachim,1862,1938,Ehrenbreitstein,Potsdam,Antoine Kuhn-Schuhmann,m1895 b1869 Glogau d1945,Ernst Friedrich Joachim,50.3592938,7.6138426,52.4009309,13.0591397,,y,9
+Point (16.95791685000000015 52.4035197299999993),,Hans-Joachim Paul Julius,1867,1943,Dusseldorf,Nordhausen,"Margarete Rausch, Ida Maria Rosenkranz",i. m1897 b1878 Nordhausen d1929 Nordhausen ii. M1941 b1892 Caldau d1965 Isingdorf-Arrode,Ernst Friedrich Joachim,51.2254018,6.7763137,51.5051574,10.7925317,,y,9
+Point (13.39513089999999984 52.51738850000000269),,Adolf Willhelm Ludwig,1868,1930,Koblenz,Berlin,Sophie Herwarth v. Bidenfeld,m1897 b1873 Dargistaff d1947 Berlin,Adolf Willhelm,50.3533278,7.5943951,52.5173885,13.3951309,,y,9
+Point (13.35431469999999976 53.93144360000000148),,Hans Ernst Adolf,1870,1893,Mainz,Berlin,,,Adolf Willhelm,49.9995205,8.2736253,52.5173885,13.3951309,,y,9
+Point (11.46479320000000079 53.89098320000000086),,Ursula Antonie Elisabeth Charlotte,1896,1971,Stettin,Berlin,Friedrich Willheim v.Klitzing,m1927 b1900 Stettin d1945,Walter Willhelm Heinrich Adolf Joachim,53.4286937,14.5541812,52.5173885,13.3951309,,y,10
+Point (12.34711139999999929 54.02982980000000168),,Mara Elisabeth Helene,1898,1899,Hannover,Hannover,,,Hans-Joachim Paul Julius,52.3744779,9.7385532,52.3744779,9.7385532,,y,10
+Point (12.34711139999999929 54.02982980000000168),,Hans-Joachim Friedrich Willhelm,1899,1974,Berlin,Berlin,,,Adolf Willhelm Ludwig,52.5173885,13.3951309,52.5173885,13.3951309,,y,10
+Point (13.24327210000000044 54.3364609999999999),,Ingeborg Minna Elvine Gertrud,1899,1946,Stettin,Elvese,Wolfdietrich v.Eichmann,m1927 b1900 Freystadt,Walter Willhelm Heinrich Adolf Joachim,53.4286937,14.5541812,51.6622994,9.9464121,,y,10
+Point (13.24327210000000044 54.3364609999999999),,Hans Ulrich Joachim Ernst Ottomar,1900,1935,Posen,Breslau,Marie-Luise Klauser (Omi),m1930 b1907 Bersenbruck d1999 Grenzach,Hans-Joachim Paul Julius,52.40351973,16.95791685,51.11210881,17.0219554,,y,10
+Point (13.24327210000000044 54.3364609999999999),,Horst Eberhard Adolf,1900,1918,Berlin,Epernay,,,Adolf Willhelm Ludwig,52.5173885,13.3951309,49.04440835,3.950170478,,y,10
+NULL,,Elisabeth Charlotte Hedwig Gudula,1903,1981,Strassburg,Schwabish-Hall,"Paul Gravenstein, Erich Wachter",i. m1922 b1887 Sydow d1925 Berlin ii. m1940 b1901 Bremen d1965 Berlin,Walter Willhelm Heinrich Adolf Joachim,48.5744314,7.766875392,49.11675419,9.723711066,,y,10
+NULL,,Vera Helene Elisabeth Charlote,1903,1985,Posen,Kassel,,,Hans-Joachim Paul Julius,52.40351973,16.95791685,51.3157833,9.4978479,,y,10
+NULL,,Harold Gerd Francis,1907,1998,Berlin,Freiburg,Gertrud v. Casimir,m1936 b1912 Berlin d2002 Freiburg,Adolf Willhelm Ludwig,52.5173885,13.3951309,47.9960901,7.8494005,,y,10
+NULL,,Hans-Joachim Arthur Fritz Walter,1911,2000,Posen,Munster,"Margarete Horch, Edith Dziemba",i. m1939 b1915 Danzig d1975 Munster ii. M1976 b1930- Gelsenkirchen,Hans-Joachim Paul Julius,52.40351973,16.95791685,51.9625101,7.6251879,,y,10
+Point (13.35431469999999976 53.93144360000000148),,Gisela Margarete Vera,1931,0,Essen,,Walter Steiner,m1958 b1926 Prag d2017 Durham,Hans Ulrich Joachim Ernst Ottomar,51.4582235,7.0158171,,,,,11
+Point (13.35431469999999976 53.93144360000000148),,Hans-Peter Rolf,1934,0,Sprottau,,Alexander Furrer,m1965 b1944 Luzern,Hans Ulrich Joachim Ernst Ottomar,51.56585586,15.53760388,,,,,11
+Point (7.01581709999999958 51.45822350000000256),,Jorg,1937,0,Potsdam,,Isoide Feierabend,m1963 b1936 Kraschnitz,Harold Gerd Francis,52.4009309,13.0591397,,,,,11
+Point (15.5376038800000007 51.56585585999999921),,Horst,1940,0,Greifswald,,Gudrun Schneider,m1965 b1940 Stuttgart,Harold Gerd Francis,54.095791,13.3815238,,,,,11
+Point (13.05913969999999935 52.40093089999999876),,Jutts,1943,0,Greifswald,,,,Harold Gerd Francis,54.095791,13.3815238,,,,,11
+Point (13.38152380000000008 54.09579099999999841),,Ralf,1943,0,Munster,,Annegret Leopold,m1969 b1951 Munster,Hans-Joachim Arthur Fritz Walter,51.9625101,7.6251879,,,,,11
+Point (13.38152380000000008 54.09579099999999841),,Katherina,1965,0,Freiburg,,Wolfgang Kramer,m2005,Jorg,47.9960901,7.8494005,,,,,12
+Point (7.62518790000000024 51.96251010000000292),,Hans-Joachim,1966,0,Turnhout,,Begona Martinez Arbizu,m2003 b1966 Valencia,Hans-Peter Rolf,51.32204009,4.934037898,,,,,12
+Point (7.84940049999999978 47.99609010000000353),,Jochen,1968,0,Stuttgart,,Julia Probst,m1998 b1969 Wermelskirchen,Jorg,48.7784485,9.1800132,,,,,12
+Point (4.9340378979999997 51.32204009000000156),,Matthias,1970,0,Turnhout,,Christine Nemitz,m2001 b1970 Washington (US),Hans-Peter Rolf,51.32204009,4.934037898,,,,,12
+Point (9.18001319999999943 48.77844850000000321),,Karin,1970,0,Munster,,,,Ralf,51.9625101,7.6251879,,,,,12
+Point (4.9340378979999997 51.32204009000000156),,Johanna,1972,0,Hannover,,,,Horst,52.3744779,9.7385532,,,,,12
+Point (7.62518790000000024 51.96251010000000292),,Gerrit,1974,0,Munster,,Kerstin Forster,m2003 b1975 Fulda,Ralf,51.9625101,7.6251879,,,,,12
+Point (9.73855320000000013 52.37447790000000225),,Christiane,1975,0,Hannover,,Werner v. Wulffen,m2000 b1975 Hannover,Horst,52.3744779,9.7385532,,,,,12
+Point (7.62518790000000024 51.96251010000000292),,Sophia Dorothea,1977,0,Alkmaar,,,,Hans-Peter Rolf,52.63643254,4.742532933,,,,,12
+Point (9.73855320000000013 52.37447790000000225),,Elke,1985,0,Munster,,,,Ralf,51.9625101,7.6251879,,,,,12
+Point (4.74253293299999967 52.63643254000000127),,Theresa,2000,0,Gottingen,,,,Jochen,51.5328328,9.9351811,,,,,13
+Point (7.62518790000000024 51.96251010000000292),,Juliane,2001,0,Gottingen,,,,Jochen,51.5328328,9.9351811,,,,,13
+Point (9.93518109999999943 51.53283280000000133),,Sebastian Erik,2002,0,Starnberg,,,,Matthias,47.9986851,11.3410791,,,,,13
+Point (9.93518109999999943 51.53283280000000133),,Gereon,2004,0,Erlangen,,,,Katherina,49.5891571,10.9812072,,,,,13
+Point (11.34107909999999997 47.99868510000000299),,Alexander Niklas,2004,2024,Starnberg,,,,Matthias,47.9986851,11.3410791,,,,,13
+Point (10.98120720000000006 49.58915710000000132),,Elise,2005,0,Gottingen,,,,Jochen,51.5328328,9.9351811,,,,,13
+Point (11.34107909999999997 47.99868510000000299),,Jannis,2005,0,Munster,,,,Gerrit,51.9625101,7.6251879,,,,,13
+Point (9.93518109999999943 51.53283280000000133),,Moritz,2008,0,Niedereschach,,,,Jochen,48.1322687,8.528116,,,,,13
+Point (7.62518790000000024 51.96251010000000292),,Victor Joachim,2008,0,Rome,,,,Hans-Joachim,41.89723337,12.4814353,,,,,13
+Point (8.5281160000000007 48.13226869999999735),,Christopher David,2008,0,Starnberg,,,,Matthias,47.9986851,11.3410791,,,,,13
+Point (12.48143529999999934 41.89723337000000214),,Linus,2008,0,Munster,,,,Gerrit,51.9625101,7.6251879,,,,,13
+Point (11.34107909999999997 47.99868510000000299),,Joachim,,1699,Wismar,Gubkow,Marie Elisabeth Korte,d1715 Gubkow,Ascan,53.8909832,11.4647932,54.0298298,12.3471114,,Y,3
+Point (7.62518790000000024 51.96251010000000292),,Elisabeth Henriette Charlotte,,,Breechen,,,,Friedrich Alexander,53.9314436,13.3543147,,,,y,6
