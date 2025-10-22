@@ -2,7 +2,7 @@
 
 This repository showcases the work from a project I carried out on school inequalities with the research question: To what extent do state-funded secondary school catchment areas affect house prices, and how is this relationship influenced by educational outcomes in Sheffield?
 
-Since this project, I have used the data to create an interactive map that visualises the average house prices in each secondary school boundaries (an average of 2022) with statitics on the percentage of pupils at each school achieving both a 4 in English and Maths at GCSE level (2024). The interactive version of this map can be accessed here (the catchment boundaries can be toggled on and off using the controls data table in the top right) : https://marcusgg10.github.io/sheffield-inequalities/
+Since this project, I have used the data to create an interactive map that visualises the average house prices in each secondary school boundaries (an average of 2022) with statitics on the percentage of pupils at each school achieving both a 4 in English and Maths at GCSE level (2024). The interactive version of this map can be accessed here (the catchment boundaries can be toggled on and off using the controls data table in the top right) : https://marcusgg10.github.io/sheffield-inequalities/ . 
 
 # Where did the data come from?
 
