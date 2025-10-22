@@ -1,23 +1,22 @@
+# 1.--- Load packages and files---
+import folium
+import geopandas as gpd
+import pandas as pd
+from shapely.geometry import Polygon
+from branca.element import Element
+import json
 
-# --- 1. Data Preparation ---
-
-# Load your GeoDataFrame 'merged_gdf' from a file or create it manually.
-# Replace 'your_data.geojson' with the path to your GeoJSON, shapefile, or other data source.
+#Read Geojson file
 merged_gdf = gpd.read_file('C:\Python\H3 Intro\school_catchments.geojson')
 
-# Ensure the GeoDataFrame is not empty
-if merged_gdf.empty:
-    raise ValueError("The GeoDataFrame 'merged_gdf' is empty. Please check your data source.")
-
-# --- CONFIGURATION ---
-# Use these variables to easily match your data's column names
+2.--- Configuration ---
+# Configure column names
 price_col = 'avg_price_2022'
 school_name_col = 'catchment'
-# <<< CHANGE THIS to the name of the column in your data with the school's performance grade
 grade_col = 'gcse_perf_2024' 
 
 
-# Ensure the geometries have the correct CRS
+# Ensuring the geometries have the correct CRS
 if merged_gdf.crs is None:
     merged_gdf = merged_gdf.set_crs("EPSG:4326", allow_override=True)
 elif merged_gdf.crs != "EPSG:4326":
@@ -34,16 +33,15 @@ merged_gdf[price_col] = (
 # Sort by price to ensure consistent layer ordering if needed later
 merged_gdf = merged_gdf.sort_values(by=price_col, ascending=False).reset_index(drop=True)
 
-# --- NEW: EXPORT TO GEOJSON ---
+
 # This line saves the prepared GeoDataFrame to a GeoJSON file.
-# This is the file you can upload to other web services.
 merged_gdf.to_file("school_catchments.geojson", driver='GeoJSON')
 
 
-# --- 2. Map and Layer Creation ---
+# 3. ---Map and Layer Creation ---
 m = folium.Map(location=[53.38, -1.47], zoom_start=12, tiles='CartoDB positron')
 
-# YlGnBu color scheme for house prices - updated to remove top bracket
+# YlGnBu color scheme for house prices
 def get_color(price):
     if price > 450000: return '#6e9bc6' # Darker Blue
     elif price > 350000: return '#86C1D9' # Blue
@@ -52,18 +50,20 @@ def get_color(price):
     elif price > 125000: return '#EDF8FB' # Lightest Green/Yellow
     else: return '#FFEDA0'               # Yellow
 
+# Organising layers for Folium
 school_feature_group = folium.FeatureGroup(name="School Catchments", show=True).add_to(m)
 
 for index, row in merged_gdf.iterrows():
     layer_id = f'school_{index}'
 
-    # Create a GeoDataFrame for a single feature to convert to GeoJSON
+    # Creating a GeoDataFrame for a single feature to convert to GeoJSON
     single_feature = gpd.GeoDataFrame([row], crs=merged_gdf.crs)
     single_feature_json = json.loads(single_feature.to_json())
     
-    # Embed the unique layer_id into the GeoJSON properties
+    # Embedding the unique layer_id into the GeoJSON properties
     single_feature_json['features'][0]['properties']['layer_id'] = layer_id
 
+    #Setting colour, weight and opacity
     folium.GeoJson(
         single_feature_json,
         style_function=lambda x, price=row[price_col]: {
@@ -72,16 +72,16 @@ for index, row in merged_gdf.iterrows():
             'weight': 1.5,
             'fillOpacity': 0.7,
         },
-        # Updated tooltip to include grade performance
+        # Adding on the school performance (grades)
         tooltip=f"""<strong>{row[school_name_col]}</strong><br>
                     Avg. Price: £{row[price_col]:,.0f}<br>
                     Performance: {row[grade_col]}"""
     ).add_to(school_feature_group)
 
-# --- 3. Custom HTML, CSS, and JavaScript for the Control Table ---
+# --- 4. HTML, CSS, and JavaScript for the Control Table ---
 
 table_rows_html = ""
-# Sort initially by name for default A-Z view in the table
+# Sort by name for default A-Z view in the table
 merged_gdf_sorted_alpha = merged_gdf.sort_values(by=school_name_col, ascending=True)
 
 for _, row in merged_gdf_sorted_alpha.iterrows():
