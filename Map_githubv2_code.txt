@@ -1,0 +1,709 @@
+# map_with_search_persistent_pins_controlpanel_fix_final_with_tooltips.py
+import folium
+import geopandas as gpd
+import pandas as pd
+import json
+from branca.element import Element
+
+# ---------- 1. Configuration ----------
+geojson_path = r'C:\Python\H3 Intro\school_catchments2.geojson'  # adjust
+out_geojson = 'school_catchments.geojson'
+out_html = 'Map_github2.html'
+
+# Column names
+price_col = 'avg_price_2022'
+school_name_col = 'catchment'
+grade_col = 'gcse_perf_2024'
+value_index_col = 'Sheffield Schools Data with Scores_Value_Index_10'
+
+# ---------- 2. Load and prepare GeoDataFrame ----------
+gdf = gpd.read_file(geojson_path)
+
+if gdf.crs is None:
+    gdf = gdf.set_crs("EPSG:4326", allow_override=True)
+elif str(gdf.crs) != "EPSG:4326":
+    gdf = gdf.to_crs("EPSG:4326")
+
+gdf[price_col] = gdf[price_col].astype(str).str.replace(',', '', regex=False)
+gdf[price_col] = pd.to_numeric(gdf[price_col], errors='coerce')
+gdf[value_index_col] = pd.to_numeric(gdf[value_index_col], errors='coerce')
+gdf[grade_col] = pd.to_numeric(gdf[grade_col], errors='coerce')
+
+gdf = gdf.sort_values(by=price_col, ascending=False).reset_index(drop=True)
+gdf.to_file(out_geojson, driver='GeoJSON')
+
+# ---------- Helper for initial server-side colouring ----------
+def get_initial_fill(row):
+    p = row.get(price_col, None)
+    try:
+        if pd.isna(p):
+            return '#FFFFFF'
+        p = float(p)
+        if p > 450000: return '#6e9bc6'
+        if p > 350000: return '#86C1D9'
+        if p > 200000: return '#9FD3E3'
+        if p > 150000: return '#9CCF86'
+        if p > 125000: return '#E9F3A8'
+    except Exception:
+        pass
+    return '#FFEDA0'
+
+# ---------- 3. Create map and per-feature GeoJson layers ----------
+m = folium.Map(location=[53.38, -1.47], zoom_start=12, tiles='CartoDB positron')
+school_feature_group = folium.FeatureGroup(name="School Catchments", show=True).add_to(m)
+
+for idx, row in gdf.iterrows():
+    layer_id = f'school_{idx}'
+    single = gdf.loc[[idx]].copy()
+    single_json = json.loads(single.to_json())
+    single_json['features'][0]['properties']['layer_id'] = layer_id
+
+    folium.GeoJson(
+        single_json,
+        name=layer_id,
+        style_function=lambda feat, r=row: {
+            'fillColor': get_initial_fill(r),
+            'color': 'black',
+            'weight': 1.5,
+            'fillOpacity': 0.7,
+        },
+        highlight=False
+    ).add_to(school_feature_group)
+
+# ---------- 4. Build control table HTML (rows) ----------
+gdf_alpha = gdf.sort_values(by=school_name_col, ascending=True).reset_index()
+
+table_rows_html = ""
+for _, row in gdf_alpha.iterrows():
+    original_index = int(row['index'])
+    layer_id = f'school_{original_index}'
+    price_value = row[price_col]
+    price_display = f"£{price_value:,.0f}" if pd.notna(price_value) else "N/A"
+    school_name = (row[school_name_col] or "").strip()
+    grade_value = row[grade_col] if pd.notna(row[grade_col]) else ""
+    value_index_val = row[value_index_col] if pd.notna(row[value_index_col]) else ""
+
+    data_price = f"{price_value:.0f}" if pd.notna(price_value) else ""
+    data_grade = f"{grade_value}" if grade_value != "" else ""
+    data_valueindex = f"{value_index_val:.6f}" if value_index_val != "" else ""
+
+    value_index_display = f"{value_index_val:.2f}" if isinstance(value_index_val, (int, float)) else value_index_val
+
+    # Toggle Mercia School off by default (case-insensitive match).
+    checked_attr = ''
+    try:
+        if school_name.lower() != 'mercia school':
+            checked_attr = 'checked'
+    except Exception:
+        checked_attr = 'checked'
+
+    table_rows_html += f"""
+        <tr data-price="{data_price}" data-name="{school_name}" data-grade="{data_grade}" data-valueindex="{data_valueindex}">
+            <td><a href="#" onclick="zoomToSchool('{layer_id}'); return false;">{school_name}</a></td>
+            <td>{price_display}</td>
+            <td>{grade_value}</td>
+            <td>{value_index_display}</td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox" id="{layer_id}" onclick="toggleLayer(this)" {checked_attr}>
+                    <span class="slider round"></span>
+                </label>
+            </td>
+        </tr>
+    """
+
+# ---------- 5. Client-side HTML/JS/CSS template (with focus outline suppressed) ----------
+# Behavior:
+#  - highlight and tooltip are shown only when layer is clicked (on map) or when zoomToSchool is called (control link)
+#  - hover-driven stroke changes removed
+#  - enforce initial checkbox state so unchecked boxes (Mercia) are removed from the map on load
+template = """
+<!-- Address Search Box (Top Left) -->
+<div id="address-search-box">
+  <h4 style="margin-top: 0; margin-bottom: 10px;">Find Your School Catchment</h4>
+  <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+    <input type="text" id="address-input" placeholder="Enter postcode or address..." style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px;">
+    <button id="search-btn" style="padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;">Search</button>
+  </div>
+  <div id="search-results" style="font-size: 12px; color: #333;"></div>
+</div>
+
+<!-- Controls Button (Top Right) -->
+<div id="toggle-button" tabindex="0" role="button">Controls</div>
+
+<!-- Control Panel (Top Right) -->
+<div id="custom-control" class="folium-control" aria-hidden="true">
+  <h4>School Catchment Areas</h4>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <div>
+      <label style="margin-right:6px;">Metric:</label>
+      <select id="metric-select">
+        <option value="price" selected>Average House Price</option>
+        <option value="valueindex">Value Index</option>
+        <option value="grade">GCSE English and Maths pass rate (%)</option>
+      </select>
+    </div>
+    <div style="font-size:12px;"><button onclick="resetHighlight()">Reset highlight</button></div>
+  </div>
+
+  <div class="table-container">
+    <table id="school-table">
+      <thead>
+        <tr>
+          <th id="th-name" style="cursor:pointer;">School Name &#x2195;</th>
+          <th id="th-price" title="This data is based upon on Average House prices in school catchment areas from a year round average of 2022 at the LSOA level" style="cursor:pointer;">Average House Prices &#x2195;</th>
+          <th id="th-grade" title="This data is based upon the percentage of individuals who passed both English and Maths in 2024" style="cursor:pointer;">GCSE English and Maths pass rate (%) &#x2195;</th>
+          <th id="th-valueindex" title="This measure incorporates GCSE grades (75% weighting) and Level 4 qualification attainment (25%) to represent educational attainment and the affordability of housing as a socioeconomic indicator" style="cursor:pointer;">Value Index &#x2195;</th>
+          <th>Show/Hide</th>
+        </tr>
+      </thead>
+      <tbody id="school-table-body">
+        {table_rows}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Legend placed bottom-left -->
+<div id="map-legend" class="map-legend"></div>
+
+<style>
+/* Address Search Box (Top Left) */
+#address-search-box {{
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 350px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  z-index: 1000;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}}
+#toggle-button {{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: white;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  z-index: 1000;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}}
+#custom-control {{
+  display: none;
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  width: 500px;
+  max-height: 70vh;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  z-index: 1000;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+}}
+#custom-control h4 {{ margin-top: 0; text-align: center; }}
+.table-container {{ overflow-y: auto; max-height: calc(45vh); }}
+#custom-control table {{ width: 100%; border-collapse: collapse; }}
+#custom-control th, #custom-control td {{ border-bottom: 1px solid #ddd; padding: 6px; text-align: left; }}
+#custom-control th {{ background-color: #f2f2f2; }}
+.switch {{ position: relative; display: inline-block; width: 44px; height: 24px; }}
+.switch input {{ opacity: 0; width: 0; height: 0; }}
+.slider {{ position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }}
+.slider:before {{ position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }}
+input:checked + .slider {{ background-color: #007bff; }}
+input:checked + .slider:before {{ transform: translateX(20px); }}
+.slider.round {{ border-radius: 24px; }}
+.slider.round:before {{ border-radius: 50%; }}
+
+/* legend box (bottom-left) */
+.map-legend {{
+  position: fixed;
+  bottom: 20px;
+  left: 10px;
+  z-index: 999;
+  background: white;
+  border: 2px solid grey;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  width: min(260px, 85vw);
+  line-height: 1.45;
+  box-sizing: border-box;
+}}
+.map-legend i {{ display:inline-block; width:30px; height:30px; margin-right:10px; vertical-align: middle; border-radius:4px; }}
+.map-legend .label {{ vertical-align: middle; }}
+
+/* Move zoom controls to bottom right */
+.leaflet-control-zoom {{
+  position: fixed !important;
+  bottom: 30px !important;
+  right: 10px !important;
+  top: auto !important;
+  left: auto !important;
+}}
+html, body {{ overflow-x: hidden; }}
+
+/* Hide the bounding box rectangle that appears on click by suppressing focus outline
+   on interactive SVG/path elements. This removes the blue/rect focus from Leaflet interactive
+   items while preserving path styling used for highlights. */
+.leaflet-interactive:focus {{
+  outline: none !important;
+  box-shadow: none !important;
+  stroke-width: inherit !important;
+}}
+svg rect:focus {{
+  outline: none !important;
+  stroke: none !important;
+  stroke-width: 0 !important;
+}}
+</style>
+
+<script>
+window.addEventListener('load', function() {{
+  var map = {map_name};
+  var featureGroup = {feature_group};
+
+  var priceCol = '{price_col}';
+  var valueIndexCol = '{value_index_col}';
+  var schoolNameCol = '{school_name_col}';
+  var gradeCol = '{grade_col}';
+
+  var layers = {{}};
+  var currentlyHighlightedLayer = null;
+  var searchMarkers = [];
+
+  function getColorFor(metric, val) {{
+    if (val === undefined || val === null || val === '') return '#FFFFFF';
+    var n = parseFloat(val);
+    if (isNaN(n)) return '#FFFFFF';
+    if (metric === 'price') {{
+      if (n > 450000) return '#6e9bc6';
+      if (n > 350000) return '#86C1D9';
+      if (n > 200000) return '#9FD3E3';
+      if (n > 150000) return '#9CCF86';
+      if (n > 125000) return '#E9F3A8';
+      return '#FFEDA0';
+    }} else if (metric === 'valueindex') {{
+      if (n > 8) return '#08306b';
+      if (n > 6) return '#2171b5';
+      if (n > 4) return '#6baed6';
+      if (n > 2) return '#f46d43';
+      return '#a50f15';
+    }} else if (metric === 'grade') {{
+      if (n >= 69.3) return '#7f2704';
+      if (n > 61.9) return '#df5005';
+      if (n > 56.7) return '#fd9243';
+      if (n > 50.3) return '#fdd2a5';
+      return '#fff5eb';
+    }}
+    return '#FFFFFF';
+  }}
+
+  function applyStyleToContainer(container, styleObj) {{
+    if (container.eachLayer) {{
+      container.eachLayer(function(child) {{
+        if (typeof child.setStyle === 'function') child.setStyle(styleObj);
+      }});
+    }} else if (typeof container.setStyle === 'function') {{
+      container.setStyle(styleObj);
+    }}
+  }}
+
+  function bringContainerToFront(container) {{
+    // ensure highlight stroke renders above other map vectors
+    if (container.eachLayer) {{
+      container.eachLayer(function(child) {{
+        if (typeof child.bringToFront === 'function') try{{ child.bringToFront(); }}catch(e){{}}
+      }});
+    }} else if (typeof container.bringToFront === 'function') {{
+      try{{ container.bringToFront(); }}catch(e){{}}
+    }}
+  }}
+
+  function getContainerBounds(container) {{
+    if (typeof container.getBounds === 'function') return container.getBounds();
+    var bounds = null;
+    if (container.eachLayer) {{
+      container.eachLayer(function(child) {{
+        if (child.getBounds) {{
+          if (!bounds) bounds = child.getBounds();
+          else bounds.extend(child.getBounds());
+        }}
+      }});
+    }}
+    return bounds;
+  }}
+
+  // Build layers index, set per-child cached base style, store tooltip content,
+  // DO NOT bind mouseover/out handlers so hover won't change stroke.
+  featureGroup.eachLayer(function(geoJsonLayer) {{
+    var id = null;
+    var props = null;
+    if (geoJsonLayer.eachLayer) {{
+      geoJsonLayer.eachLayer(function(child) {{
+        if (child.feature && child.feature.properties) {{
+          props = child.feature.properties;
+          id = props.layer_id;
+        }}
+      }});
+    }}
+    if (!id || !props) return;
+    layers[id] = geoJsonLayer;
+
+    // precompute tooltip content and store on properties for later display
+    var rawPrice = props[priceCol];
+    var priceDisplay = (rawPrice === undefined || rawPrice === null || rawPrice === '') ? 'N/A' :
+      (isNaN(parseFloat(rawPrice)) ? rawPrice : parseFloat(rawPrice).toLocaleString('en-GB', {{ style: 'currency', currency: 'GBP', minimumFractionDigits: 0 }}));
+
+    var rawValueIdx = props[valueIndexCol];
+    var valueIdxDisplay = (rawValueIdx === undefined || rawValueIdx === null || rawValueIdx === '') ? '' :
+      (isNaN(parseFloat(rawValueIdx)) ? rawValueIdx : parseFloat(rawValueIdx).toFixed(2));
+
+    var tooltipContent = '<strong>' + (props[schoolNameCol] || '') + '</strong><br>' +
+                         'Avg. Price: ' + priceDisplay + '<br>' +
+                         'GCSE English and Maths pass rate (%): ' + (props[gradeCol] || '') + '<br>' +
+                         'Schooling Outcome Value Index: ' + valueIdxDisplay;
+
+    props._tooltipContent = tooltipContent;
+
+    // ensure each child has a cached _baseStyle based on current metric (price default)
+    geoJsonLayer.eachLayer(function(child) {{
+      if (child.feature && child.feature.properties) {{
+        child.feature.properties._parentLayerId = id;
+        var val = child.feature.properties[priceCol];
+        var fill = getColorFor('price', val);
+        var base = {{ fillColor: fill, color: 'black', weight: 1.5, fillOpacity: 0.7 }};
+        if (typeof child.setStyle === 'function') {{
+          child.setStyle(base);
+          child.feature.properties._baseStyle = Object.assign({{}}, base);
+        }}
+
+        // click toggles persistent highlight on container (map click)
+        child.on('click', function(e) {{
+          L.DomEvent.stopPropagation(e);
+          var container = geoJsonLayer;
+          if (currentlyHighlightedLayer && currentlyHighlightedLayer._leaflet_id === container._leaflet_id) {{
+            unHighlightLayer(container);
+          }} else {{
+            highlightLayer(container);
+          }}
+        }});
+      }}
+    }});
+  }});
+
+  // Enforce checkbox initial state: remove layers for unchecked boxes (so Mercia is really off)
+  (function enforceCheckboxInitialState() {{
+    var checkboxes = document.querySelectorAll('#school-table-body input[type="checkbox"]');
+    checkboxes.forEach(function(cb) {{
+      try {{
+        var layer = layers[cb.id];
+        if (layer && !cb.checked) {{
+          map.removeLayer(layer);
+        }}
+      }} catch (e) {{ console.error(e); }}
+    }});
+  }})();
+
+  function highlightLayer(container) {{
+    if (!container) return;
+    if (currentlyHighlightedLayer) unHighlightLayer(currentlyHighlightedLayer);
+
+    // bring highlight stroke to front so it is visible above other layers
+    bringContainerToFront(container);
+
+    // apply stroke highlight to children and preserve their fill from _baseStyle
+    if (container.eachLayer) {{
+      container.eachLayer(function(child) {{
+        var base = child.feature && child.feature.properties && child.feature.properties._baseStyle;
+        if (base && typeof child.setStyle === 'function') {{
+          child.setStyle(Object.assign({{}}, base, {{ color: 'yellow', weight: 4 }}));
+        }} else if (typeof child.setStyle === 'function') {{
+          child.setStyle({{ color: 'yellow', weight: 4 }});
+        }}
+      }});
+
+      // bind tooltip content to the first child and open it (tooltip only for highlighted container)
+      var opened = false;
+      container.eachLayer(function(child) {{
+        if (!opened) {{
+          var t = child.feature && child.feature.properties && child.feature.properties._tooltipContent;
+          if (t && child.bindTooltip) {{
+            child.bindTooltip(t, {{ sticky: false }});
+            try {{ child.openTooltip(); }} catch (e) {{ }}
+            opened = true;
+          }}
+        }}
+      }});
+    }}
+    currentlyHighlightedLayer = container;
+  }}
+
+  function unHighlightLayer(container) {{
+    if (!container) return;
+    if (container.eachLayer) {{
+      container.eachLayer(function(child) {{
+        var base = child.feature && child.feature.properties && child.feature.properties._baseStyle;
+        if (base && typeof child.setStyle === 'function') child.setStyle(base);
+        else if (typeof child.setStyle === 'function') child.setStyle({{ color: 'black', weight: 1.5 }});
+        try {{ if (child.closeTooltip) child.closeTooltip(); }} catch (e) {{ }}
+        try {{ if (child.unbindTooltip) child.unbindTooltip(); }} catch (e) {{ }}
+      }});
+    }} else if (container.feature && container.feature.properties && container.feature.properties._baseStyle) {{
+      container.setStyle(container.feature.properties._baseStyle);
+    }}
+    if (currentlyHighlightedLayer && currentlyHighlightedLayer._leaflet_id === container._leaflet_id) {{
+      currentlyHighlightedLayer = null;
+    }}
+  }}
+
+  window.zoomToSchool = function(layerId) {{
+    var container = layers[layerId];
+    if (!container) return;
+    var bounds = getContainerBounds(container);
+    if (bounds) map.fitBounds(bounds);
+    // highlight and bring stroke to front
+    highlightLayer(container);
+    bringContainerToFront(container);
+  }};
+
+  // Recolour everything for the chosen metric and update cached _baseStyle per child
+  function recolourLayers(metric) {{
+    Object.keys(layers).forEach(function(id) {{
+      var container = layers[id];
+      if (!container) return;
+      container.eachLayer(function(child) {{
+        if (child.feature && child.feature.properties) {{
+          var props = child.feature.properties;
+          var val = null;
+          if (metric === 'price') val = props[priceCol];
+          else if (metric === 'valueindex') val = props[valueIndexCol];
+          else if (metric === 'grade') val = props[gradeCol];
+          var fill = getColorFor(metric, val);
+          var base = {{ fillColor: fill, color: 'black', weight: 1.5, fillOpacity: 0.7 }};
+          if (typeof child.setStyle === 'function') {{
+            child.setStyle(base);
+            child.feature.properties._baseStyle = Object.assign({{}}, base);
+          }}
+        }}
+      }});
+    }});
+    updateLegend(metric);
+  }}
+
+  document.getElementById('metric-select').addEventListener('change', function() {{
+    recolourLayers(this.value);
+  }});
+
+  window.toggleLayer = function(element) {{
+    var layer = layers[element.id];
+    if (!layer) return;
+    if (element.checked) layer.addTo(map);
+    else {{
+      map.removeLayer(layer);
+      // if we turned off the currently highlighted layer via control, unhighlight it
+      if (currentlyHighlightedLayer && layer._leaflet_id === currentlyHighlightedLayer._leaflet_id) {{
+        unHighlightLayer(currentlyHighlightedLayer);
+      }}
+    }}
+  }};
+
+  // Robust togglePanel + keyboard accessibility
+  window.togglePanel = function() {{
+    var panel = document.getElementById('custom-control');
+    if (!panel) return;
+    panel.style.display = (panel.style.display && panel.style.display !== 'none') ? 'none' : 'block';
+    panel.setAttribute('aria-hidden', panel.style.display === 'none' ? 'true' : 'false');
+  }};
+  var tb = document.getElementById('toggle-button');
+  if (tb) {{
+    tb.addEventListener('click', function() {{ togglePanel(); }});
+    tb.addEventListener('keydown', function(e) {{ if (e.key === 'Enter' || e.key === ' ') togglePanel(); }});
+  }}
+
+  // Reliable sortTable wiring
+  var sortDirections = {{ name: 'asc', price: 'desc', grade: 'desc', valueindex: 'desc' }};
+  function sortTable(columnIndex, dataAttribute, isNumeric) {{
+    var tableBody = document.getElementById('school-table-body');
+    if (!tableBody) return;
+    var rows = Array.from(tableBody.querySelectorAll('tr'));
+    var direction = sortDirections[dataAttribute] || 'asc';
+    rows.sort(function(a, b) {{
+      var valA = a.dataset[dataAttribute] || '';
+      var valB = b.dataset[dataAttribute] || '';
+      if (isNumeric) {{
+        valA = parseFloat(valA) || 0;
+        valB = parseFloat(valB) || 0;
+        return direction === 'desc' ? valB - valA : valA - valB;
+      }} else {{
+        valA = valA.toUpperCase();
+        valB = valB.toUpperCase();
+        if (valA < valB) return direction === 'asc' ? -1 : 1;
+        if (valA > valB) return direction === 'asc' ? 1 : -1;
+        return 0;
+      }}
+    }});
+    sortDirections[dataAttribute] = (direction === 'asc' ? 'desc' : 'asc');
+    rows.forEach(function(r) {{ tableBody.appendChild(r); }});
+  }}
+  document.getElementById('th-name').addEventListener('click', function() {{ sortTable(0, 'name', false); }});
+  document.getElementById('th-price').addEventListener('click', function() {{ sortTable(1, 'price', true); }});
+  document.getElementById('th-grade').addEventListener('click', function() {{ sortTable(2, 'grade', true); }});
+  document.getElementById('th-valueindex').addEventListener('click', function() {{ sortTable(3, 'valueindex', true); }});
+
+  function updateLegend(metric) {{
+    var html = '';
+    if (metric === 'price') {{
+      html += '<div><strong>Avg. House Price (£)</strong><br>';
+      html += '<i style="background:#6e9bc6"></i> &gt; 450k<br>';
+      html += '<i style="background:#86C1D9"></i> 350k - 450k<br>';
+      html += '<i style="background:#9FD3E3"></i> 200k - 350k<br>';
+      html += '<i style="background:#9CCF86"></i> 150k - 200k<br>';
+      html += '<i style="background:#E9F3A8"></i> 125k - 150k<br>';
+      html += '<i style="background:#FFEDA0"></i> &lt; 125k</div>';
+    }} else if (metric === 'valueindex') {{
+      html += '<div><strong>Value Index</strong><br>';
+      html += '<i style="background:#08306b"></i> &gt; 8<br>';
+      html += '<i style="background:#2171b5"></i> 6 - 8<br>';
+      html += '<i style="background:#6baed6"></i> 4 - 6<br>';
+      html += '<i style="background:#f46d43"></i> 2 - 4<br>';
+      html += '<i style="background:#a50f15"></i> &lt;= 2</div>';
+    }} else if (metric === 'grade') {{
+      html += '<div><strong>GCSE Percentage (%)</strong><br>';
+      html += '<i style="background:#7f2704"></i> 69.3 - 95.8<br>';
+      html += '<i style="background:#df5005"></i> 61.9 - 69.3<br>';
+      html += '<i style="background:#fd9243"></i> 56.7 - 61.9<br>';
+      html += '<i style="background:#fdd2a5"></i> 50.3 - 56.7<br>';
+      html += '<i style="background:#fff5eb"></i> 26.9 - 50.3</div>';
+    }}
+    var container = document.getElementById('map-legend');
+    if (container) container.innerHTML = html;
+  }}
+
+  // SEARCH: persistent marker with popup (short address) and "In the catchment for:"
+  document.getElementById('search-btn').addEventListener('click', searchAddress);
+  document.getElementById('address-input').addEventListener('keypress', function(e) {{ if (e.key === 'Enter') searchAddress(); }});
+
+  function searchAddress() {{
+    var address = document.getElementById('address-input').value;
+    var resultsDiv = document.getElementById('search-results');
+    if (!address) {{ resultsDiv.innerHTML = '<span style="color: red;">Please enter an address or postcode.</span>'; return; }}
+    resultsDiv.innerHTML = 'Searching...';
+    var url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=' + encodeURIComponent(address + ', Sheffield, UK') + '&limit=1';
+    fetch(url).then(r => r.json()).then(function(data) {{
+      if (!(data && data.length)) {{ resultsDiv.innerHTML = '<span style="color: red;">Address not found. Please try a different search.</span>'; return; }}
+      var item = data[0];
+      var lat = parseFloat(item.lat);
+      var lon = parseFloat(item.lon);
+      var addr = item.address || {{}};
+      var road = addr.road || addr.pedestrian || addr.residential || '';
+      var house = addr.house_number ? (addr.house_number + ' ') : '';
+      var postcode = addr.postcode || '';
+      var firstPart = (item.display_name || address).split(',')[0];
+      var shortLabel = (road ? (house + road) : firstPart) + (postcode ? (', ' + postcode) : '');
+      var marker = L.marker([lat, lon], {{
+        icon: L.icon({{
+          iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+          iconSize: [25,41], iconAnchor: [12,41], popupAnchor: [1,-34], shadowSize: [41,41]
+        }}),
+        title: shortLabel
+      }}).addTo(map);
+
+      var point = turf.point([lon, lat]);
+      var matching = [];
+      Object.keys(layers).forEach(function(layerId) {{
+        var container = layers[layerId];
+        var props = null; var geom = null;
+        container.eachLayer(function(child) {{ if (child.feature) {{ if (!props) props = child.feature.properties; if (!geom) geom = child.feature.geometry; }} }});
+        if (props && geom) {{
+          try {{ var poly = turf.feature(geom); if (turf.booleanPointInPolygon(point, poly)) matching.push(props); }} catch (e) {{ console.error(e); }}
+        }}
+      }});
+
+      // create unique remove button id for this marker's popup
+      var removeBtnId = 'remove-marker-' + Date.now() + '-' + Math.floor(Math.random() * 1000000);
+
+      var popupHtml = '<div style="font-weight:600;margin-bottom:6px;">' + shortLabel + '</div>';
+      if (matching.length) {{
+        popupHtml += '<div><strong>In the catchment for:</strong></div>';
+        matching.forEach(function(p) {{
+          var price = (p[priceCol] == null || p[priceCol] === '') ? 'N/A' : '£' + parseFloat(p[priceCol]).toLocaleString('en-GB', {{minimumFractionDigits:0}});
+          var grade = (p[gradeCol] == null || p[gradeCol] === '') ? 'N/A' : p[gradeCol] + '%';
+          var val = (p[valueIndexCol] == null || p[valueIndexCol] === '') ? 'N/A' : parseFloat(p[valueIndexCol]).toFixed(2);
+          popupHtml += '<div style="margin-top:6px;padding:6px;background:#f7f7f7;border-radius:4px;"><strong>' + (p[schoolNameCol] || 'Unknown') + '</strong><br>';
+          popupHtml += '<small>Avg. Price: ' + price + '<br>GCSE: ' + grade + '<br>Value Index: ' + val + '</small></div>';
+        }});
+      }} else {{
+        popupHtml += '<div><em>No catchment found for this location on the map.</em></div>';
+      }}
+      popupHtml += '<div style="margin-top:6px;"><button id="' + removeBtnId + '">Remove Point</button></div>';
+
+      marker.bindPopup(popupHtml);
+      marker.bindTooltip(shortLabel, {{permanent:false,direction:'top'}});
+      searchMarkers.push(marker);
+
+      // attach click handler for the remove button when the popup is opened (DOM exists)
+      marker.on('popupopen', function(e) {{
+        var btn = document.getElementById(removeBtnId);
+        if (btn) {{
+          btn.addEventListener('click', function() {{
+            try {{ map.removeLayer(marker); }} catch (err) {{ console.error(err); }}
+            var i = searchMarkers.indexOf(marker);
+            if (i !== -1) searchMarkers.splice(i, 1);
+            if (resultsDiv) resultsDiv.innerHTML = '';
+          }});
+        }}
+      }});
+
+      marker.openPopup();
+      map.setView([lat, lon], 15);
+
+      var summary = '<div style="font-weight:600;">' + shortLabel + '</div>';
+      if (matching.length) {{
+        summary += '<div style="margin-top:6px;"><strong>In the catchment for:</strong>';
+        matching.forEach(function(p) {{ summary += '<div style="margin-top:6px;padding:6px;background:#f0f0f0;border-radius:4px;"><strong>' + (p[schoolNameCol]||'Unknown') + '</strong></div>'; }});
+        summary += '</div>';
+      }} else {{ summary += '<div style="margin-top:6px;"><em>No catchment on map</em></div>'; }}
+      resultsDiv.innerHTML = summary;
+    }}).catch(function(err) {{
+      console.error(err);
+      document.getElementById('search-results').innerHTML = '<span style="color: red;">Error searching address. Please try again.</span>';
+    }});
+  }}
+
+  // Load Turf.js then initialise legend & default recolour
+  var turfScript = document.createElement('script');
+  turfScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js';
+  turfScript.onload = function() {{ updateLegend('price'); recolourLayers('price'); }};
+  document.body.appendChild(turfScript);
+
+  window.resetHighlight = function() {{ if (currentlyHighlightedLayer) unHighlightLayer(currentlyHighlightedLayer); }};
+}});
+</script>
+""".format(
+    table_rows=table_rows_html,
+    map_name=m.get_name(),
+    feature_group=school_feature_group.get_name(),
+    price_col=price_col,
+    value_index_col=value_index_col,
+    school_name_col=school_name_col,
+    grade_col=grade_col
+)
+
+m.get_root().html.add_child(Element(template))
+m.save(out_html)
+print(f"Map written to {out_html}")
