@@ -1,0 +1,306 @@
+# 1.--- Load packages and files---
+import folium
+import geopandas as gpd
+import pandas as pd
+from shapely.geometry import Polygon
+from branca.element import Element
+import json
+
+#Read Geojson file
+merged_gdf = gpd.read_file('C:\Python\H3 Intro\school_catchments.geojson')
+
+2.--- Configuration ---
+# Configure column names
+price_col = 'avg_price_2022'
+school_name_col = 'catchment'
+grade_col = 'gcse_perf_2024' 
+
+
+# Ensuring the geometries have the correct CRS
+if merged_gdf.crs is None:
+    merged_gdf = merged_gdf.set_crs("EPSG:4326", allow_override=True)
+elif merged_gdf.crs != "EPSG:4326":
+    merged_gdf = merged_gdf.to_crs("EPSG:4326")
+
+# Ensure numeric prices
+merged_gdf[price_col] = (
+    merged_gdf[price_col]
+    .astype(str)
+    .str.replace(',', '')
+    .astype(int)
+)
+
+# Sort by price to ensure consistent layer ordering if needed later
+merged_gdf = merged_gdf.sort_values(by=price_col, ascending=False).reset_index(drop=True)
+
+
+# This line saves the prepared GeoDataFrame to a GeoJSON file.
+merged_gdf.to_file("school_catchments.geojson", driver='GeoJSON')
+
+
+# 3. ---Map and Layer Creation ---
+m = folium.Map(location=[53.38, -1.47], zoom_start=12, tiles='CartoDB positron')
+
+# YlGnBu color scheme for house prices
+def get_color(price):
+    if price > 450000: return '#6e9bc6' # Darker Blue
+    elif price > 350000: return '#86C1D9' # Blue
+    elif price > 200000: return '#9FD3E3' # Lighter Blue
+    elif price > 150000: return '#C7E9B4' # Light Green
+    elif price > 125000: return '#EDF8FB' # Lightest Green/Yellow
+    else: return '#FFEDA0'               # Yellow
+
+# Organising layers for Folium
+school_feature_group = folium.FeatureGroup(name="School Catchments", show=True).add_to(m)
+
+for index, row in merged_gdf.iterrows():
+    layer_id = f'school_{index}'
+
+    # Creating a GeoDataFrame for a single feature to convert to GeoJSON
+    single_feature = gpd.GeoDataFrame([row], crs=merged_gdf.crs)
+    single_feature_json = json.loads(single_feature.to_json())
+    
+    # Embedding the unique layer_id into the GeoJSON properties
+    single_feature_json['features'][0]['properties']['layer_id'] = layer_id
+
+    #Setting colour, weight and opacity
+    folium.GeoJson(
+        single_feature_json,
+        style_function=lambda x, price=row[price_col]: {
+            'fillColor': get_color(price),
+            'color': 'black',
+            'weight': 1.5,
+            'fillOpacity': 0.7,
+        },
+        # Adding on the school performance (grades)
+        tooltip=f"""<strong>{row[school_name_col]}</strong><br>
+                    Avg. Price: £{row[price_col]:,.0f}<br>
+                    Performance: {row[grade_col]}"""
+    ).add_to(school_feature_group)
+
+# --- 4. HTML, CSS, and JavaScript for the Control Table ---
+
+table_rows_html = ""
+# Sort by name for default A-Z view in the table
+merged_gdf_sorted_alpha = merged_gdf.sort_values(by=school_name_col, ascending=True)
+
+for _, row in merged_gdf_sorted_alpha.iterrows():
+    # Find the original index from the price-sorted frame to get the correct layer_id
+    original_index = merged_gdf.index[merged_gdf[school_name_col] == row[school_name_col]].tolist()[0]
+    layer_id = f'school_{original_index}'
+    
+    price_value = row[price_col]
+    school_name = row[school_name_col]
+    grade_value = row[grade_col]
+    
+    # Add data-* attributes for sorting and a new table cell for the grade
+    table_rows_html += f"""
+        <tr data-price="{price_value}" data-name="{school_name}" data-grade="{grade_value}">
+            <td><a href="#" onclick="zoomToSchool('{layer_id}'); return false;">{school_name}</a></td>
+            <td>£{price_value:,.0f}</td>
+            <td>{grade_value}</td>
+            <td>
+                <label class="switch">
+                    <input type="checkbox" id="{layer_id}" onclick="toggleLayer(this)" checked>
+                    <span class="slider round"></span>
+                </label>
+            </td>
+        </tr>
+    """
+
+# Combine HTML, CSS, and JavaScript into a single string
+custom_elements_html = f"""
+<div id="toggle-button" onclick="togglePanel()">Controls</div>
+
+<div id="custom-control" class="folium-control">
+    <h4>School Catchment Areas 🏫</h4>
+    <div class="table-container">
+        <table id="school-table">
+            <thead>
+                <tr>
+                    <th onclick="sortTableByName()" style="cursor: pointer;">School Name &#x2195;</th>
+                    <th onclick="sortTableByPrice()" style="cursor: pointer;" title="This data is based upon Average House Prices in school catchment areas from a year-round average of 2022 on the LSOA geographic scale.">Average House Prices &#x2195;</th>
+                    <th onclick="sortTableByGrade()" style="cursor: pointer;" title="This data uses the % of individuals who achieved Grades 4 or above in English and Maths GCSE in 2024 as a measurement of academic achievement of Secondary Schools.">Percentage of individuals &#x2195;</th>
+                    <th>Show/Hide</th>
+                </tr>
+            </thead>
+            <tbody id="school-table-body">
+                {table_rows_html}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    /* Main control panel and button styles */
+    #toggle-button {{
+        position: absolute; top: 10px; right: 10px; background-color: white; padding: 6px 10px;
+        border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-family: Arial, sans-serif;
+        font-size: 13px; z-index: 1000; box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }}
+    #custom-control {{
+        display: none; position: absolute; top: 50px; right: 10px; width: 350px;
+        max-height: 70vh; background-color: white; border: 1px solid #ccc;
+        border-radius: 4px; padding: 8px; font-family: Arial, sans-serif;
+        font-size: 13px; z-index: 1000; box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }}
+    #custom-control h4 {{ margin-top: 0; text-align: center; }}
+    /* Table styles */
+    .table-container {{ overflow-y: auto; max-height: calc(70vh - 40px); }}
+    #custom-control table {{ width: 100%; border-collapse: collapse; }}
+    #custom-control th, #custom-control td {{ border-bottom: 1px solid #ddd; padding: 6px; text-align: left; }}
+    #custom-control th {{ background-color: #f2f2f2; }}
+    /* Toggle switch styles */
+    .switch {{ position: relative; display: inline-block; width: 44px; height: 24px; }}
+    .switch input {{ opacity: 0; width: 0; height: 0; }}
+    .slider {{ position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }}
+    .slider:before {{ position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }}
+    input:checked + .slider {{ background-color: #007bff; }}
+    input:checked + .slider:before {{ transform: translateX(20px); }}
+    .slider.round {{ border-radius: 24px; }}
+    .slider.round:before {{ border-radius: 50%; }}
+</style>
+
+<script>
+window.addEventListener('load', function() {{
+    // Get references to map objects created by Folium
+    var map = {m.get_name()};
+    var featureGroup = {school_feature_group.get_name()};
+    
+    // Create objects to hold our layers and their original styles
+    var layers = {{}};
+    var currentlyHighlightedLayer = null;
+
+    // --- INITIALIZATION ---
+    // Loop through each GeoJson layer in the feature group to store it and add click events
+    featureGroup.eachLayer(function(geoJsonLayer) {{ // geoJsonLayer is a container for our feature
+        
+        var id = null;
+        // The actual feature with its properties is a child layer of the GeoJson object.
+        // We loop through the child layers to find the id.
+        geoJsonLayer.eachLayer(function(polygon) {{
+             if(polygon.feature && polygon.feature.properties && polygon.feature.properties.layer_id) {{
+                id = polygon.feature.properties.layer_id;
+             }}
+        }});
+
+        if (id) {{
+            layers[id] = geoJsonLayer; // Store the container layer by its ID
+
+            // *** Add click listener to the container layer itself ***
+            geoJsonLayer.on('click', function(e) {{
+                if (currentlyHighlightedLayer && currentlyHighlightedLayer._leaflet_id === this._leaflet_id) {{
+                    // If the clicked layer is already highlighted, un-highlight it
+                    unHighlightLayer(this);
+                }} else {{
+                    // Otherwise, highlight this layer
+                    highlightLayer(this);
+                }}
+            }});
+        }}
+    }});
+
+    // --- HIGHLIGHTING LOGIC ---
+    function highlightLayer(layer) {{
+        // First, un-highlight any previously selected layer
+        if (currentlyHighlightedLayer) {{
+            unHighlightLayer(currentlyHighlightedLayer);
+        }}
+        
+        // Apply yellow highlight style to the new layer
+        layer.setStyle({{ color: 'yellow', weight: 4 }});
+        currentlyHighlightedLayer = layer;
+    }}
+
+    function unHighlightLayer(layer) {{
+        // Revert to the hard-coded original style.
+        layer.setStyle({{ color: 'black', weight: 1.5 }});
+        
+        if (currentlyHighlightedLayer && currentlyHighlightedLayer._leaflet_id === layer._leaflet_id){{
+            currentlyHighlightedLayer = null;
+        }}
+    }}
+
+    window.zoomToSchool = function(layerId) {{
+        var layer = layers[layerId];
+        if (layer) {{
+            map.fitBounds(layer.getBounds());
+            highlightLayer(layer);
+        }}
+    }};
+
+    // --- TABLE SORTING LOGIC ---
+    var sortDirections = {{ name: 'asc', price: 'desc', grade: 'asc' }};
+
+    function sortTable(columnIndex, dataAttribute, isNumeric) {{
+        var tableBody = document.getElementById('school-table-body');
+        var rows = Array.from(tableBody.querySelectorAll('tr'));
+        var direction = sortDirections[dataAttribute];
+
+        rows.sort(function(a, b) {{
+            var valA = a.dataset[dataAttribute];
+            var valB = b.dataset[dataAttribute];
+
+            if (isNumeric) {{
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+                return direction === 'desc' ? valB - valA : valA - valB;
+            }} else {{
+                valA = valA.toUpperCase();
+                valB = valB.toUpperCase();
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            }}
+        }});
+        
+        // Toggle direction for the next click
+        sortDirections[dataAttribute] = (direction === 'asc' ? 'desc' : 'asc');
+        rows.forEach(row => tableBody.appendChild(row));
+    }};
+
+    window.sortTableByName = function() {{ sortTable(0, 'name', false); }};
+    window.sortTableByPrice = function() {{ sortTable(1, 'price', true); }};
+    window.sortTableByGrade = function() {{ sortTable(2, 'grade', false); }};
+
+    // --- EXISTING PANEL AND LAYER TOGGLE FUNCTIONS ---
+    window.toggleLayer = function(element) {{
+        var layer = layers[element.id];
+        if (element.checked) {{
+            layer.addTo(map);
+        }} else {{
+            map.removeLayer(layer);
+        }}
+    }};
+
+    window.togglePanel = function() {{
+        var panel = document.getElementById('custom-control');
+        panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+    }};
+}});
+</script>
+"""
+
+# --- 4. Add Choropleth Legend ---
+legend_html = '''
+<div style="position: fixed; 
+bottom: 20px; left: 10px; width: 160px; 
+border:2px solid grey; z-index:999; font-size:14px; 
+background-color:white; padding: 10px; border-radius: 8px;">
+    <h4 style="margin-top:0;">Avg. House Price (£)</h4>
+    <i style="background:#6e9bc6; width:18px; height:18px; float:left; margin-right:8px;"></i> &gt; 450k<br>
+    <i style="background:#86C1D9; width:18px; height:18px; float:left; margin-right:8px;"></i> 350k - 450k<br>
+    <i style="background:#9FD3E3; width:18px; height:18px; float:left; margin-right:8px;"></i> 200k - 350k<br>
+    <i style="background:#C7E9B4; width:18px; height:18px; float:left; margin-right:8px;"></i> 150k - 200k<br>
+    <i style="background:#EDF8FB; width:18px; height:18px; float:left; margin-right:8px;"></i> 125k - 150k<br>
+    <i style="background:#FFEDA0; width:18px; height:18px; float:left; margin-right:8px;"></i> &lt; 125k
+</div>
+'''
+
+# --- 5. Add All Elements to Map and Save ---
+m.get_root().html.add_child(Element(custom_elements_html))
+m.get_root().html.add_child(Element(legend_html))
+
+m.save("Map_github.html")
+
+print("Interactive map 'Map_Final.html' and 'school_catchments.geojson' have been created successfully!")
