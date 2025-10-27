@@ -2,7 +2,7 @@
 
 This repository showcases the work from a project I carried out on school inequalities with the research question: To what extent do state-funded secondary school catchment areas affect house prices, and how is this relationship influenced by educational outcomes in Sheffield?
 
-Since this project, I have used the data to create an interactive map that visualises the average house prices in each secondary school boundaries (an average of 2022) with statitics on the percentage of pupils at each school achieving both a 4 in English and Maths at GCSE level (2024). The interactive version of this map can be accessed here: https://marcusgg10.github.io/sheffield-inequalities/ . 
+Since this project, I have used the data to create an interactive map that visualises the average house prices in each secondary school boundaries (an average of 2022) with statitics on the percentage of pupils at each school achieving both a 4 in English and Maths at GCSE level (2024) and a new Value Index. The interactive version of this map can be accessed here: https://marcusgg10.github.io/sheffield-inequalities/ . 
 
 # About the Interactive Map
 
@@ -11,6 +11,10 @@ The map has a control panel that allows you to change the metric at the top, whi
 # Where did the data come from?
 
 <img width="689" height="765" alt="image" src="https://github.com/user-attachments/assets/8fc477d4-d337-44a4-ac29-9549cac089da" /><img width="689" height="155" alt="image" src="https://github.com/user-attachments/assets/280f08e9-325c-40f9-a2ba-b795c28b3db4" /><img width="690" height="172" alt="image" src="https://github.com/user-attachments/assets/629c705d-5372-4063-9720-9437f0790ff8" />
+
+# Value Index
+
+Comprimising of the Z-Score of my GCSE Grade Variable (75% weight) and Weighted Level 4 Qualification variable (25% weight) to make 'Education score' variable then minus the Z-Score from the Weighted Average House Price variable to get an intial Affordability Index. Then adjusted the values so the index is relative to the minimum and maximum values in the dataset and made it a 0-10 scale.
 
 
 
@@ -42,7 +46,11 @@ The map has a control panel that allows you to change the metric at the top, whi
 
 
 # Table of findings
-<img width="626" height="734" alt="image" src="https://github.com/user-attachments/assets/d58e3e87-d2eb-4f67-9f00-d6e27a5dc8af" />
+<img width="626" height="733" alt="image" src="https://github.com/user-attachments/assets/ef18d000-2200-4807-b657-af7510f771cb" />
+
+
+
+
 
 
 
