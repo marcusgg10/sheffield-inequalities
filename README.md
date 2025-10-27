@@ -6,6 +6,8 @@ Since this project, I have used the data to create an interactive map that visua
 
 # About the Interactive Map
 
+The map has a control panel that allows you to change the metric at the top, which will change what is displayed on the map either Average House Price, Value Index or GCSE English and Maths pass rate (%). Below this metric dropdown is a table that allows you toggle individual layers on and off, especially useful due to the overlapping nature of catchment boundaries. It also allows the user to sort by ascending or descending order for each value. In the top left corner is a search metric which allows the user to search addresses and it will inform the user what catchment that address falls into (you can select multiple address to compare). 
+
 # Where did the data come from?
 
 <img width="689" height="765" alt="image" src="https://github.com/user-attachments/assets/8fc477d4-d337-44a4-ac29-9549cac089da" /><img width="689" height="155" alt="image" src="https://github.com/user-attachments/assets/280f08e9-325c-40f9-a2ba-b795c28b3db4" /><img width="690" height="172" alt="image" src="https://github.com/user-attachments/assets/629c705d-5372-4063-9720-9437f0790ff8" />
