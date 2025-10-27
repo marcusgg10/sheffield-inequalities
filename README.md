@@ -42,7 +42,7 @@ The map has a control panel that allows you to change the metric at the top, whi
 
 
 # Table of findings
-<img width="623" height="734" alt="image" src="https://github.com/user-attachments/assets/d300d36c-27b6-477e-b7dd-828d4ef0702b" />
+<img width="626" height="734" alt="image" src="https://github.com/user-attachments/assets/d58e3e87-d2eb-4f67-9f00-d6e27a5dc8af" />
 
 
 
